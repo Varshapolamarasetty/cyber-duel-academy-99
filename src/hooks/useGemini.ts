@@ -1,32 +1,32 @@
 
 import { useState } from 'react';
-import { openaiService, ChatMessage } from '@/services/openai';
+import { geminiService, ChatMessage } from '@/services/openai';
 import { useToast } from './use-toast';
 
-export const useOpenAI = () => {
+export const useGemini = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   
   const setApiKey = (apiKey: string) => {
-    const success = openaiService.setApiKey(apiKey);
+    const success = geminiService.setApiKey(apiKey);
     if (success) {
       toast({
         title: "API Key Saved",
-        description: "Your OpenAI API key has been saved successfully"
+        description: "Your Gemini API key has been saved successfully"
       });
     }
     return success;
   };
 
   const getApiKey = () => {
-    return openaiService.getApiKey();
+    return geminiService.getApiKey();
   };
 
   const clearApiKey = () => {
-    openaiService.clearApiKey();
+    geminiService.clearApiKey();
     toast({
       title: "API Key Removed",
-      description: "Your OpenAI API key has been removed"
+      description: "Your Gemini API key has been removed"
     });
   };
 
@@ -36,7 +36,7 @@ export const useOpenAI = () => {
   ) => {
     setLoading(true);
     try {
-      const response = await openaiService.createChatCompletion(messages, options);
+      const response = await geminiService.createChatCompletion(messages, options);
       setLoading(false);
       return response;
     } catch (error) {
