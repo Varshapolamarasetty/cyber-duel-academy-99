@@ -1,27 +1,37 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import GlitchText from '@/components/GlitchText';
 import Terminal from '@/components/Terminal';
 import { useOpenAI } from '@/hooks/useOpenAI';
+import { useGemini } from '@/hooks/useGemini';
 import { ChatMessage } from '@/types/api';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
   const [apiKey, setApiKey] = useState('');
+  const [apiProvider, setApiProvider] = useState<'openai' | 'gemini'>('openai');
   const [mentorInput, setMentorInput] = useState('');
   const [aiResponses, setAiResponses] = useState<string[]>([
     "Connecting to AI Mentor...",
     "Connection established."
   ]);
-  const { loading, setApiKey: saveApiKey, getApiKey, generateResponse } = useOpenAI();
+  
+  const openai = useOpenAI();
+  const gemini = useGemini();
+  
+  // Use the selected API provider
+  const selectedApi = apiProvider === 'openai' ? openai : gemini;
   
   useEffect(() => {
-    const hasApiKey = !!getApiKey();
+    const hasApiKey = !!selectedApi.getApiKey();
     
     if (hasApiKey && user) {
       setAiResponses(prev => [
@@ -35,14 +45,14 @@ const Dashboard = () => {
       setAiResponses(prev => [
         ...prev,
         `Hello ${user.username}, to activate AI features,`,
-        "please configure your OpenAI API key.",
+        `please configure your ${apiProvider.toUpperCase()} API key.`,
       ]);
     }
-  }, [user]);
+  }, [user, apiProvider, selectedApi]);
 
   const handleSaveApiKey = () => {
     if (apiKey.trim()) {
-      saveApiKey(apiKey.trim());
+      selectedApi.setApiKey(apiKey.trim());
       setApiKeyModalOpen(false);
       
       if (user) {
@@ -59,7 +69,7 @@ const Dashboard = () => {
   };
 
   const handleSendMentorMessage = async () => {
-    if (!mentorInput.trim() || loading) return;
+    if (!mentorInput.trim() || selectedApi.loading) return;
     
     setAiResponses(prev => [...prev, `> ${mentorInput}`, "Processing..."]);
     setMentorInput('');
@@ -78,7 +88,7 @@ const Dashboard = () => {
       }
     ];
     
-    const response = await generateResponse(messages);
+    const response = await selectedApi.generateResponse(messages);
     
     if (response) {
       setAiResponses(prev => {
@@ -90,7 +100,7 @@ const Dashboard = () => {
       setAiResponses(prev => {
         const newResponses = [...prev];
         newResponses.pop();
-        return [...newResponses, "Error connecting to AI. Please check your API key."];
+        return [...newResponses, `Error connecting to ${apiProvider.toUpperCase()}. Please check your API key.`];
       });
     }
   };
@@ -196,7 +206,7 @@ const Dashboard = () => {
                   typingSpeed={30}
                 />
                 
-                {getApiKey() ? (
+                {selectedApi.getApiKey() ? (
                   <div className="mt-4">
                     <div className="flex space-x-2">
                       <Input
@@ -209,7 +219,7 @@ const Dashboard = () => {
                       <Button 
                         className="cyber-button-primary" 
                         onClick={handleSendMentorMessage}
-                        disabled={loading || !mentorInput.trim()}
+                        disabled={selectedApi.loading || !mentorInput.trim()}
                       >
                         Send
                       </Button>
@@ -274,28 +284,47 @@ const Dashboard = () => {
       <Dialog open={apiKeyModalOpen} onOpenChange={setApiKeyModalOpen}>
         <DialogContent className="bg-cyber-background border border-cyber-neon/30 text-white">
           <DialogHeader>
-            <DialogTitle className="cyber-heading text-xl">OpenAI API Configuration</DialogTitle>
+            <DialogTitle className="cyber-heading text-xl">AI API Configuration</DialogTitle>
             <DialogDescription className="text-cyber-muted-text">
-              Enter your OpenAI API key to enable the AI Mentor functionality.
+              Select your preferred AI provider and enter your API key.
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
+            <RadioGroup 
+              defaultValue={apiProvider} 
+              onValueChange={(value) => setApiProvider(value as 'openai' | 'gemini')}
+              className="flex flex-col space-y-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="openai" id="openai" className="text-cyber-red" />
+                <Label htmlFor="openai" className="text-white cursor-pointer">OpenAI</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="gemini" id="gemini" className="text-cyber-red" />
+                <Label htmlFor="gemini" className="text-white cursor-pointer">Google Gemini</Label>
+              </div>
+            </RadioGroup>
+            
             <div className="space-y-2">
               <label htmlFor="apiKey" className="text-sm font-medium text-white">
-                API Key
+                API Key for {apiProvider === 'openai' ? 'OpenAI' : 'Google Gemini'}
               </label>
               <Input
                 id="apiKey"
                 type="password"
-                placeholder="sk-..."
+                placeholder={apiProvider === 'openai' ? "sk-..." : "AIza..."}
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 className="bg-cyber-background-alt border-cyber-neon/30"
               />
               <p className="text-xs text-cyber-muted-text">
                 Your API key is stored locally in your browser and never sent to our servers.
-                Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-cyber-neon underline">OpenAI's dashboard</a>.
+                {apiProvider === 'openai' ? (
+                  <> Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-cyber-neon underline">OpenAI's dashboard</a>.</>
+                ) : (
+                  <> Get your API key from <a href="https://ai.google.dev/" target="_blank" rel="noopener noreferrer" className="text-cyber-neon underline">Google AI Studio</a>.</>
+                )}
               </p>
             </div>
           </div>
