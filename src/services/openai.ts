@@ -1,65 +1,6 @@
 
 import { toast } from "@/hooks/use-toast";
-
-// Types for API requests
-export interface ChatMessage {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
-}
-
-export interface OpenAICompletionRequest {
-  model: string;
-  messages: ChatMessage[];
-  temperature?: number;
-  max_tokens?: number;
-}
-
-export interface OpenAICompletionResponse {
-  id: string;
-  object: string;
-  created: number;
-  model: string;
-  choices: {
-    index: number;
-    message: ChatMessage;
-    finish_reason: string;
-  }[];
-  usage: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
-}
-
-export interface GeminiMessage {
-  role: 'user' | 'model';
-  parts: {
-    text: string;
-  }[];
-}
-
-export interface GeminiRequest {
-  contents: GeminiMessage[];
-  generationConfig?: {
-    temperature?: number;
-    maxOutputTokens?: number;
-  };
-}
-
-export interface GeminiResponse {
-  candidates: {
-    content: {
-      parts: {
-        text: string;
-      }[];
-      role: string;
-    };
-    finishReason: string;
-  }[];
-  promptFeedback: {
-    safetyRatings: any[];
-  };
-}
+import { ChatMessage, OpenAICompletionRequest, OpenAICompletionResponse, GeminiMessage, GeminiRequest, GeminiResponse } from "@/types/api";
 
 // OpenAI Service class
 class OpenAIService {
@@ -137,9 +78,6 @@ class OpenAIService {
     }
   }
 }
-
-// Export a singleton instance
-export const openaiService = new OpenAIService();
 
 // Gemini Service class
 class GeminiService {
@@ -247,5 +185,6 @@ class GeminiService {
   }
 }
 
-// Export a singleton instance
+// Export singleton instances
+export const openaiService = new OpenAIService();
 export const geminiService = new GeminiService();

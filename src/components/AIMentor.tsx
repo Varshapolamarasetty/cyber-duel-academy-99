@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import GlitchText from './GlitchText';
 import { Code, ShieldAlert, Zap, Brain, Activity, Bot, RotateCcw, Settings } from 'lucide-react';
 import { useOpenAI } from '@/hooks/useOpenAI';
-import { OpenAIMessage } from '@/services/openai';
+import { ChatMessage } from '@/types/api';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,7 @@ const AIMentor = () => {
   const [activeFeature, setActiveFeature] = useState(0);
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
   const [apiKey, setApiKey] = useState('');
-  const [conversation, setConversation] = useState<OpenAIMessage[]>([]);
+  const [conversation, setConversation] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState('');
   const [mentorResponse, setMentorResponse] = useState('');
   const [chatActive, setChatActive] = useState(false);
@@ -78,7 +77,7 @@ const AIMentor = () => {
     setChatActive(true);
     
     // System instructions for the AI mentor
-    const systemMessage: OpenAIMessage = {
+    const systemMessage: ChatMessage = {
       role: 'system',
       content: `You are an AI cybersecurity mentor for hackXtreme, an advanced cybersecurity training platform. 
       Your purpose is to guide users through learning cybersecurity concepts, help them understand attack vectors, 
@@ -88,7 +87,7 @@ const AIMentor = () => {
     };
     
     // Initial greeting from the AI
-    const assistantMessage: OpenAIMessage = {
+    const assistantMessage: ChatMessage = {
       role: 'assistant',
       content: `Initiating AI Mentor module... \n\nHello, I'm your cybersecurity mentor. I see you're exploring ${currentFeature.title}. How can I assist you with this module today?`
     };
@@ -103,7 +102,7 @@ const AIMentor = () => {
     // Add user message to conversation
     const updatedConversation = [
       ...conversation,
-      { role: 'user', content: userInput } as OpenAIMessage
+      { role: 'user', content: userInput } as ChatMessage
     ];
     
     setConversation(updatedConversation);

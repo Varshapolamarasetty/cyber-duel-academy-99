@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
-import { geminiService, ChatMessage } from '@/services/openai';
+import { geminiService } from '@/services/openai';
 import { useToast } from './use-toast';
+import { ChatMessage } from '@/types/api';
 
 export const useGemini = () => {
   const [loading, setLoading] = useState(false);

@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
-import { openaiService, ChatMessage } from '@/services/openai';
+import { openaiService } from '@/services/openai';
 import { useToast } from './use-toast';
+import { ChatMessage } from '@/types/api';
 
 export const useOpenAI = () => {
   const [loading, setLoading] = useState(false);

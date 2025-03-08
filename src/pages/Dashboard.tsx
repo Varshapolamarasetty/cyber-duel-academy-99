@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import GlitchText from '@/components/GlitchText';
 import Terminal from '@/components/Terminal';
 import { useOpenAI } from '@/hooks/useOpenAI';
-import { OpenAIMessage } from '@/services/openai';
+import { ChatMessage } from '@/types/api';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
@@ -22,10 +21,8 @@ const Dashboard = () => {
   const { loading, setApiKey: saveApiKey, getApiKey, generateResponse } = useOpenAI();
   
   useEffect(() => {
-    // Check if API key exists on component mount
     const hasApiKey = !!getApiKey();
     
-    // Add default AI mentor messages
     if (hasApiKey && user) {
       setAiResponses(prev => [
         ...prev,
@@ -48,7 +45,6 @@ const Dashboard = () => {
       saveApiKey(apiKey.trim());
       setApiKeyModalOpen(false);
       
-      // Update messages after API key is set
       if (user) {
         setAiResponses([
           "Connecting to AI Mentor...",
@@ -65,12 +61,10 @@ const Dashboard = () => {
   const handleSendMentorMessage = async () => {
     if (!mentorInput.trim() || loading) return;
     
-    // Add "typing" indicator
     setAiResponses(prev => [...prev, `> ${mentorInput}`, "Processing..."]);
     setMentorInput('');
     
-    // Construct the conversation for OpenAI
-    const messages: OpenAIMessage[] = [
+    const messages: ChatMessage[] = [
       {
         role: 'system',
         content: `You are an AI cybersecurity mentor for hackXtreme, an advanced cybersecurity training platform. 
@@ -84,22 +78,18 @@ const Dashboard = () => {
       }
     ];
     
-    // Get response from OpenAI
     const response = await generateResponse(messages);
     
-    // Update UI with response
     if (response) {
-      // Remove the "Processing..." message
       setAiResponses(prev => {
         const newResponses = [...prev];
-        newResponses.pop(); // Remove "Processing..."
+        newResponses.pop();
         return [...newResponses, response.content];
       });
     } else {
-      // Handle error
       setAiResponses(prev => {
         const newResponses = [...prev];
-        newResponses.pop(); // Remove "Processing..."
+        newResponses.pop();
         return [...newResponses, "Error connecting to AI. Please check your API key."];
       });
     }
@@ -281,7 +271,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* API Key Configuration Modal */}
       <Dialog open={apiKeyModalOpen} onOpenChange={setApiKeyModalOpen}>
         <DialogContent className="bg-cyber-background border border-cyber-neon/30 text-white">
           <DialogHeader>
